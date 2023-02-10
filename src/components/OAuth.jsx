@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from './../firebase.config';
+import { db } from '../firebase.config';
 import { toast } from 'react-toastify';
 import googleIcon from '../assets/svg/googleIcon.svg';
 
@@ -21,7 +21,7 @@ function OAuth() {
       const docSnap = await getDoc(docRef);
 
       // If user doesn't exist, create user
-      if (!docSnap.exists) {
+      if (!docSnap.exists()) {
         await setDoc(doc(db, 'users', user.uid), {
           name: user.displayName,
           email: user.email,
