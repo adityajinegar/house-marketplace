@@ -62,7 +62,7 @@ function Navbar() {
                   : 'navbarListItemName'
               }
             >
-              Explore
+              Profile
             </p>
           </li>
         </ul>
