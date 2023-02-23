@@ -6,6 +6,7 @@ import {
   uploadBytesResumable,
   getDownloadURL,
 } from 'firebase/storage';
+import { collection, addDoc, Timestamp } from 'firebase/firestore';
 import { db } from '../firebase.config';
 import { useNavigate } from 'react-router-dom';
 import Spinner from '../components/Spinner';
@@ -80,7 +81,7 @@ function CreateListing() {
     }
 
     // let geolocation = {};
-    // let location;
+    let location;
 
     // if (geolocationEnabled) {
     //   const response = await fetch(
@@ -100,15 +101,15 @@ function CreateListing() {
         const storage = getStorage();
         const fileName = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`;
 
-        // Create the file metadata
-        /** @type {any} */
-        const metadata = {
-          contentType: 'image/jpeg',
-        };
+        // // Create the file metadata
+        // /** @type {any} */
+        // const metadata = {
+        //   contentType: 'image/jpeg',
+        // };
 
         // Upload file and metadata to the object 'images/mountains.jpg'
         const storageRef = ref(storage, 'images/' + fileName);
-        const uploadTask = uploadBytesResumable(storageRef, image, metadata);
+        const uploadTask = uploadBytesResumable(storageRef, image);
 
         // Listen for state changes, errors, and completion of the upload.
         uploadTask.on(
@@ -156,7 +157,7 @@ function CreateListing() {
       });
     };
 
-    const imgUrls = await Promise.all(
+    const imageUrls = await Promise.all(
       [...images].map((image) => storeImage(image)),
     ).catch(() => {
       setLoading(false);
@@ -164,9 +165,22 @@ function CreateListing() {
       return;
     });
 
-    console.log(imgUrls);
+    const formDataCopy = {
+      ...formData,
+      imageUrls,
+      timestamp: Timestamp.now(),
+    };
+
+    formDataCopy.location = address;
+    delete formDataCopy.images;
+    delete formDataCopy.address;
+    !formDataCopy.offer && delete formDataCopy.discountedPrice;
+
+    const docRef = await addDoc(collection(db, 'listings'), formDataCopy);
 
     setLoading(false);
+    toast.success('Listing saved');
+    navigate(`/category/${formDataCopy.type}/${docRef.id}`);
   };
 
   const onMutate = (e) => {
